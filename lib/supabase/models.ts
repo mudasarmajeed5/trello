@@ -10,6 +10,7 @@ export interface BoardType{
 }
 export interface ColumnType{
     id: string, 
+    user_id: string
     board_id: string, 
     title: string, 
     sort_order: number, 

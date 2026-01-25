@@ -61,7 +61,7 @@ export const boardDataService = {
       { title: "Done", sort_order: 3 },
     ];
     // we get the board with 4 columns the board returns the id that was just created. 
-    await Promise.all(defaultColumns.map((column)=> columnService.createColumn(supabase,{...column, board_id: board.id})))
+    await Promise.all(defaultColumns.map((column)=> columnService.createColumn(supabase,{...column, board_id: board.id, user_id:boardData.userId})))
     return board;
   },
 };
