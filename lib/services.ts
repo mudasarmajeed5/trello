@@ -79,6 +79,19 @@ export const columnService = {
     if (error) throw error;
     return data;
   },
+  async updateColumnTitle(
+    supabase: SupabaseClient,
+    { columnId, title }: { columnId: string; title: string },
+  ): Promise<ColumnType> {
+    const { data, error } = await supabase
+      .from("columns")
+      .update({ title })
+      .eq("id", columnId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
 };
 
 export const taskService = {
@@ -122,7 +135,7 @@ export const taskService = {
         column_id: newColumnId,
         sort_order: newOrder,
       })
-      .eq("id", taskId)
+      .eq("id", taskId);
     if (error) throw error;
     return data;
   },

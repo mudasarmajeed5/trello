@@ -2,9 +2,23 @@
 import Navbar from "@/components/navbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogHeader,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useBoards } from "@/lib/hooks/use-boards";
+import { BoardType } from "@/lib/supabase/models";
 import { useUser } from "@clerk/nextjs";
 import {
   FilterIcon,
@@ -22,7 +36,33 @@ import { useState } from "react";
 const Dashboard = () => {
   const { user } = useUser();
   const { createBoard, boards, loading, error } = useBoards();
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  const [filters, setFilters] = useState({
+    search: "",
+    dateRange: {
+      start: null as string | null,
+      end: null as string | null,
+    },
+    taskCount: {
+      min: null as number | null,
+      max: null as number | null,
+    },
+  });
+  const filteredBoards = boards.filter((board: BoardType) => {
+    const matchesSearch = board.title
+      .toLowerCase()
+      .includes(filters.search.toLowerCase());
+    const matchesDateRange =
+      (!filters.dateRange.start ||
+        new Date(board.created_at) >= new Date(filters.dateRange.start)) &&
+      (!filters.dateRange.end ||
+        new Date(board.created_at) <= new Date(filters.dateRange.end));
+
+    return matchesSearch && matchesDateRange;
+  });
+
   const handleCreateBoard = async () => {
     await createBoard({
       title: "New Board",
@@ -146,8 +186,8 @@ const Dashboard = () => {
               </h2>
               <p className="text-gray-600">Manage your Projects and Tasks</p>
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:mb-6 space-y-2 sm:space-y-0">
-              <div className="flex items-center space-x-2 bg-white border p-1">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:mb-6 space-y-2 sm:space-y-0  sm:space-x-4">
+              <div className="flex rounded-xl items-center space-x-1 bg-white border p-1">
                 <Button
                   variant={viewMode === "grid" ? "default" : "ghost"}
                   size={"sm"}
@@ -163,7 +203,11 @@ const Dashboard = () => {
                   <ListIcon />
                 </Button>
               </div>
-              <Button variant={"outline"} size="sm">
+              <Button
+                onClick={() => setIsFilterOpen(true)}
+                variant={"outline"}
+                size="sm"
+              >
                 <FilterIcon />
                 Filter
               </Button>
@@ -173,13 +217,16 @@ const Dashboard = () => {
               </Button>
             </div>
           </div>
-          {/* serach bar */}
+          {/* search bar */}
           <div className="relative mb-4 sm:mb-6">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               id="search"
               placeholder="Search boards... "
               className="pl-10"
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, search: e.target.value }))
+              }
             />
           </div>
           {/* boards grid/list */}
@@ -187,28 +234,32 @@ const Dashboard = () => {
             <div>No boards yet.</div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {boards.map((board, key) => {
+              {filteredBoards.map((board, key) => {
                 return (
                   <Link key={key} href={`/boards/${board.id}`}>
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div className={`w-4 h-4 rounded ${board.color}`} />
-                          <Badge variant={"secondary"} className="text-xs">New</Badge>
+                          <Badge variant={"secondary"} className="text-xs">
+                            New
+                          </Badge>
                         </div>
                       </CardHeader>
                       <CardContent className="p-4 sm:p-6">
-                        <CardTitle className="text-base sm:text-lg mb-2 group-hover:text-blue-600 transition-colors">{board.title}</CardTitle>
+                        <CardTitle className="text-base sm:text-lg mb-2 group-hover:text-blue-600 transition-colors">
+                          {board.title}
+                        </CardTitle>
                         <CardDescription className="text-sm mb-4">
                           {board.description}
                         </CardDescription>
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 space-y-1 sm:space-y-0">
                           <span>
-                            Created {" "}
+                            Created{" "}
                             {new Date(board.created_at).toLocaleDateString()}
                           </span>
                           <span>
-                            Updated {" "}
+                            Updated{" "}
                             {new Date(board.updated_at).toLocaleDateString()}
                           </span>
                         </div>
@@ -219,55 +270,164 @@ const Dashboard = () => {
               })}
               <Card className="border border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer group">
                 <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-50">
-                  <PlusIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-blue-600 mb-2"/>
-                  <p className="text-sm sm:text-base text-gray-600 group-hover:text-blue-600 font-medium">Create new board</p>
+                  <PlusIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-blue-600 mb-2" />
+                  <p className="text-sm sm:text-base text-gray-600 group-hover:text-blue-600 font-medium">
+                    Create new board
+                  </p>
                 </CardContent>
               </Card>
             </div>
           ) : (
-             <div className="">
+            <div className="">
               {boards.map((board, key) => {
                 return (
-                  <div key={key} className={key > 0 ? "mt-4": ""}>
-                  <Link href={`/boards/${board.id}`}>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div className={`w-4 h-4 rounded ${board.color}`} />
-                          <Badge variant={"secondary"} className="text-xs">New</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4 sm:p-6">
-                        <CardTitle className="text-base sm:text-lg mb-2 group-hover:text-blue-600 transition-colors">{board.title}</CardTitle>
-                        <CardDescription className="text-sm mb-4">
-                          {board.description}
-                        </CardDescription>
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 space-y-1 sm:space-y-0">
-                          <span>
-                            Created {" "}
-                            {new Date(board.created_at).toLocaleDateString()}
-                          </span>
-                          <span>
-                            Updated {" "}
-                            {new Date(board.updated_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                  <div key={key} className={key > 0 ? "mt-4" : ""}>
+                    <Link href={`/boards/${board.id}`}>
+                      <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div className={`w-4 h-4 rounded ${board.color}`} />
+                            <Badge variant={"secondary"} className="text-xs">
+                              New
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-4 sm:p-6">
+                          <CardTitle className="text-base sm:text-lg mb-2 group-hover:text-blue-600 transition-colors">
+                            {board.title}
+                          </CardTitle>
+                          <CardDescription className="text-sm mb-4">
+                            {board.description}
+                          </CardDescription>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 space-y-1 sm:space-y-0">
+                            <span>
+                              Created{" "}
+                              {new Date(board.created_at).toLocaleDateString()}
+                            </span>
+                            <span>
+                              Updated{" "}
+                              {new Date(board.updated_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   </div>
                 );
               })}
               <Card className="mt-4 border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer group">
                 <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-50">
-                  <PlusIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-blue-600 mb-2"/>
-                  <p className="text-sm sm:text-base text-gray-600 group-hover:text-blue-600 font-medium">Create new board</p>
+                  <PlusIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-blue-600 mb-2" />
+                  <p className="text-sm sm:text-base text-gray-600 group-hover:text-blue-600 font-medium">
+                    Create new board
+                  </p>
                 </CardContent>
               </Card>
             </div>
           )}
         </div>
       </main>
+      {/* Filter Dialog */}
+      <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <DialogContent className="w-[95vw] max-w-106.25 mx-auto">
+          <DialogHeader>
+            <DialogTitle>Filter Boards</DialogTitle>
+            <p className="text-sm text-gray-600">
+              Filter boards by title, date or task count.
+            </p>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Search</Label>
+              <Input
+                id="search"
+                placeholder="Search board titles..."
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, search: e.target.value }))
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Date Range</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Start Date</Label>
+                  <Input
+                    type="date"
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        dateRange: {
+                          ...prev.dateRange,
+                          start: e.target.value || null,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">End Date</Label>
+                  <Input
+                    type="date"
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        dateRange: {
+                          ...prev.dateRange,
+                          end: e.target.value || null,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Task Count</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Minimum</Label>
+                  <Input
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        taskCount: {
+                          ...prev.taskCount,
+                          min: e.target.value ? Number(e.target.value) : null,
+                        },
+                      }))
+                    }
+                    type="number"
+                    min={"0"}
+                    placeholder="Min Tasks"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Maximum</Label>
+                  <Input
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        taskCount: {
+                          ...prev.taskCount,
+                          max: e.target.value ? Number(e.target.value) : null,
+                        },
+                      }))
+                    }
+                    type="number"
+                    min={"0"}
+                    placeholder="Max Tasks"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex pt-4 space-y-2 sm:space-y-0 space-x-2 flex-col sm:flex-row justify-between">
+              <Button variant={"outline"}>Clear Filters</Button>
+              <Button>Apply Filters</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

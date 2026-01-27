@@ -1,7 +1,17 @@
 import { useUser } from "@clerk/nextjs";
-import { boardDataService, boardService, taskService } from "../services";
+import {
+  boardDataService,
+  boardService,
+  columnService,
+  taskService,
+} from "../services";
 import { useEffect, useState } from "react";
-import { BoardType, ColumnType, ColumnWithTasks, TasksType } from "../supabase/models";
+import {
+  BoardType,
+  ColumnType,
+  ColumnWithTasks,
+  TasksType,
+} from "../supabase/models";
 import { useSupabase } from "../supabase/SupabaseProvider";
 import { TaskData } from "@/app/boards/[id]/page";
 
@@ -58,6 +68,7 @@ export function useBoards() {
 }
 
 export function useBoard(boardId: string) {
+  const { user } = useUser();
   const { supabase } = useSupabase();
   const [columns, setColumns] = useState<ColumnWithTasks[]>([]);
   const [board, setBoard] = useState<BoardType | null>(null);
@@ -124,40 +135,86 @@ export function useBoard(boardId: string) {
       );
       return newTask;
     } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to Add Task");
+    }
+  }
+  async function moveTask(
+    taskId: string,
+    newColumnId: string,
+    newOrder: number,
+  ) {
+    try {
+      await taskService.moveTask(supabase!, taskId, newColumnId, newOrder);
+      setColumns((prev) => {
+        const newColumns = [...prev];
+        // find and remove the task from old column.
+        let taskToMove: TasksType | null = null;
+        for (const col of newColumns) {
+          const taskIdx = col.tasks.findIndex((task) => task.id === taskId);
+          if (taskIdx != -1) {
+            taskToMove = col.tasks[taskIdx];
+            col.tasks.splice(taskIdx, 1);
+            break;
+          }
+        }
+        if (taskToMove) {
+          const targetColumn = newColumns.find((col) => col.id === newColumnId);
+          if (targetColumn) {
+            targetColumn.tasks.splice(newOrder, 0, taskToMove);
+          }
+        }
+        return newColumns;
+      });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to Move task");
+    }
+  }
+  async function createColumn(title: string) {
+    if (!board || !user) throw new Error("Board not Loaded.");
+    try {
+      const newColumn = await columnService.createColumn(supabase!, {
+        title,
+        board_id: board.id,
+        sort_order: columns.length,
+        user_id: user?.id,
+      });
+      setColumns((prev) => [...prev, { ...newColumn, tasks: [] }]);
+      return newColumn;
+    } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Failed to Add Task",
+        error instanceof Error ? error.message : "Failed to create column",
       );
     }
   }
-  async function moveTask(taskId: string, newColumnId: string, newOrder: number){
-   try {
-    await taskService.moveTask(supabase!, taskId, newColumnId, newOrder);
-    setColumns((prev)=>{
-      const newColumns = [...prev]; 
-      // find and remove the task from old column. 
-      let taskToMove: TasksType | null = null; 
-      for (const col of newColumns){
-        const taskIdx = col.tasks.findIndex((task)=>task.id === taskId); 
-        if(taskIdx != -1){
-          taskToMove = col.tasks[taskIdx];
-          col.tasks.splice(taskIdx, 1); 
-          break;
-        } 
-      }
-      if(taskToMove){
-        const targetColumn = newColumns.find((col)=>col.id === newColumnId); 
-        if(targetColumn){
-          targetColumn.tasks.splice(newOrder, 0 , taskToMove); 
-
-        }
-      }
-      return newColumns
-    })
-   } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Failed to Move task",
+  async function updateColumn(columnId: string, title: string) {
+    if (!board || !user) throw new Error("Board not Loaded.");
+    try {
+      const updatedColumn = await columnService.updateColumnTitle(supabase!, {
+        title,
+        columnId,
+      });
+      setColumns((prev) =>
+        prev.map((col) =>
+          col.id === columnId ? { ...col, ...updatedColumn } : col,
+        ),
       );
-   } 
+      return updatedColumn;
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to create column",
+      );
+    }
   }
-  return { loading, error, board, columns, updateBoard, createRealTask, setColumns, moveTask };
+  return {
+    loading,
+    error,
+    board,
+    columns,
+    updateBoard,
+    createRealTask,
+    setColumns,
+    moveTask,
+    createColumn,
+    updateColumn,
+  };
 }
