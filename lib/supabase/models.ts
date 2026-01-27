@@ -8,6 +8,10 @@ export interface BoardType{
     updated_at: string
 
 }
+export type ColumnWithTasks = ColumnType & {
+    tasks: TasksType[]
+}
+
 export interface ColumnType{
     id: string, 
     user_id: string
@@ -22,9 +26,8 @@ export interface TasksType{
     title: string, 
     description: string | null, 
     assignee: string | null, 
-    due_date: string, 
+    due_date: string | null, 
     priority: "low" | "medium" | "high"
     sort_order: number, 
-    created_at: string, 
-    updated_at: string,
+    created_at: string,
 };
