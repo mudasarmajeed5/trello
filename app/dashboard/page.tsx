@@ -33,11 +33,10 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-//https://apparent-stingray-28.clerk.accounts.dev
 const Dashboard = () => {
   const { user } = useUser();
   const router = useRouter();
-  const { createBoard, boards, loading, error } = useBoards();
+  const { createBoard, boards, error,tasksSum } = useBoards();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { isFreeUser } = usePlan();
@@ -54,7 +53,6 @@ const Dashboard = () => {
     },
   });
 
-  //  implement this on your own.
   const boardsWithTaskCount = boards.map((board: BoardType) => ({
     ...board,
     taskCount: 0,
@@ -95,15 +93,6 @@ const Dashboard = () => {
       title: "New Board",
     });
   };
-
-  // if (loading) {
-  //   return (
-  //     <div>
-  //       <Loader2Icon />
-  //       <span>Loading your boards...</span>
-  //     </div>
-  //   );
-  // }
   if (error) {
     return <div>Error loading boards: {error}</div>;
   }
@@ -190,7 +179,7 @@ const Dashboard = () => {
                     Total Tasks
                   </p>
                   <p className="text-lg sm:text-xl font-bold text-gray-900">
-                    -
+                    {tasksSum}
                   </p>
                 </div>
                 <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -298,16 +287,18 @@ const Dashboard = () => {
                 );
               })}
               <Card className="border border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer group">
-                <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-50">
-                  <PlusIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-blue-600 mb-2" />
-                  <p className="text-sm sm:text-base text-gray-600 group-hover:text-blue-600 font-medium">
-                    Create new board
-                  </p>
-                </CardContent>
+                <Button className="w-full h-full border-none hover:shadow-none" variant={"outline"} onClick={handleCreateBoard}>
+                  <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-50">
+                    <PlusIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-blue-600 mb-2" />
+                    <p className="text-sm sm:text-base text-gray-600 group-hover:text-blue-600 font-medium">
+                      Create new board
+                    </p>
+                  </CardContent>
+                </Button>
               </Card>
             </div>
           ) : (
-            <div className="">
+            <div>
               {boards.map((board, key) => {
                 return (
                   <div key={key} className={key > 0 ? "mt-4" : ""}>
@@ -344,14 +335,6 @@ const Dashboard = () => {
                   </div>
                 );
               })}
-              <Card className="mt-4 border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer group">
-                <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-50">
-                  <PlusIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-blue-600 mb-2" />
-                  <p className="text-sm sm:text-base text-gray-600 group-hover:text-blue-600 font-medium">
-                    Create new board
-                  </p>
-                </CardContent>
-              </Card>
             </div>
           )}
         </div>

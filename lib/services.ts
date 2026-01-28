@@ -142,6 +142,20 @@ export const taskService = {
 };
 
 export const boardDataService = {
+  async getTotalTasksCount(supabase: SupabaseClient, userId: string){
+    const boards = await boardService.getBoards(supabase, userId);
+   
+    const boardWithColumns = await Promise.all(
+      boards.map(async(board)=>{
+        const tasks = await taskService.getTasksByBoard(supabase, board.id); 
+        return {
+          ...board, 
+          tasks,
+        }
+      })
+    )
+    return boardWithColumns;
+  },
   async getBoardWithColumns(supabase: SupabaseClient, boardId: string) {
     const [board, columns] = await Promise.all([
       boardService.getBoard(supabase, boardId),

@@ -6,12 +6,7 @@ import {
   taskService,
 } from "../services";
 import { useEffect, useState } from "react";
-import {
-  BoardType,
-  ColumnType,
-  ColumnWithTasks,
-  TasksType,
-} from "../supabase/models";
+import { BoardType, ColumnWithTasks, TasksType } from "../supabase/models";
 import { useSupabase } from "../supabase/SupabaseProvider";
 import { TaskData } from "@/app/boards/[id]/page";
 
@@ -21,11 +16,23 @@ export function useBoards() {
   const [loading, setLoading] = useState(true);
   const { supabase } = useSupabase();
   const [error, setError] = useState<string | null>(null);
+  const [totalTasks, setTotalTasks] = useState<
+    (BoardType & { tasks: TasksType[] })[]
+  >([]);
+  const [tasksSum, setTasksSum] = useState<number>(0);
   useEffect(() => {
     if (user) {
       loadBoards();
+      getTotalTasks();
     }
-  }, [user, supabase]);
+    let sum = 0;
+
+    totalTasks.forEach((board) => {
+      sum += board.tasks.length;
+    });
+    setTasksSum(sum);
+  }, [user, supabase, totalTasks]);
+
   async function loadBoards() {
     if (!user) return;
     try {
@@ -39,6 +46,24 @@ export function useBoards() {
       );
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function getTotalTasks() {
+    if (!user) {
+      throw new Error("User not authenticated.");
+    }
+    try {
+      const totalTasksOfAllBoards = await boardDataService.getTotalTasksCount(
+        supabase!,
+        user.id,
+      );
+      setTotalTasks(totalTasksOfAllBoards);
+
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to create board",
+      );
     }
   }
   async function createBoard(boardData: {
@@ -64,7 +89,7 @@ export function useBoards() {
       );
     }
   }
-  return { boards, loading, error, createBoard };
+  return { boards, loading, error, createBoard, tasksSum };
 }
 
 export function useBoard(boardId: string) {
