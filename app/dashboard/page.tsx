@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { usePlan } from "@/lib/contexts/plan-context";
 import { useBoards } from "@/lib/hooks/use-boards";
 import { BoardType } from "@/lib/supabase/models";
 import { useUser } from "@clerk/nextjs";
@@ -24,21 +25,23 @@ import {
   FilterIcon,
   Grid3X3,
   ListIcon,
-  Loader2Icon,
   PlusIcon,
   RocketIcon,
   SearchIcon,
   TrelloIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 //https://apparent-stingray-28.clerk.accounts.dev
 const Dashboard = () => {
   const { user } = useUser();
+  const router = useRouter();
   const { createBoard, boards, loading, error } = useBoards();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-
+  const { isFreeUser } = usePlan();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [filters, setFilters] = useState({
     search: "",
     dateRange: {
@@ -50,7 +53,27 @@ const Dashboard = () => {
       max: null as number | null,
     },
   });
-  const filteredBoards = boards.filter((board: BoardType) => {
+
+  //  implement this on your own.
+  const boardsWithTaskCount = boards.map((board: BoardType) => ({
+    ...board,
+    taskCount: 0,
+  }));
+  function clearFilters() {
+    setFilters({
+      search: "",
+      dateRange: {
+        start: null as string | null,
+        end: null as string | null,
+      },
+      taskCount: {
+        min: null as number | null,
+        max: null as number | null,
+      },
+    });
+  }
+  const canCreateBoard = !isFreeUser || boards.length < 3;
+  const filteredBoards = boardsWithTaskCount.filter((board: BoardType) => {
     const matchesSearch = board.title
       .toLowerCase()
       .includes(filters.search.toLowerCase());
@@ -64,10 +87,15 @@ const Dashboard = () => {
   });
 
   const handleCreateBoard = async () => {
+    if (!canCreateBoard) {
+      setShowUpgradeDialog(true);
+      return;
+    }
     await createBoard({
       title: "New Board",
     });
   };
+
   // if (loading) {
   //   return (
   //     <div>
@@ -91,10 +119,6 @@ const Dashboard = () => {
           <p className="text-gray-600">
             Heres whats happening with your boards today.
           </p>
-          <Button className="w-full sm:w-auto" onClick={handleCreateBoard}>
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Create Board
-          </Button>
         </div>
 
         {/* stats section */}
@@ -163,10 +187,10 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-gray-600">
-                    Total Boards
+                    Total Tasks
                   </p>
                   <p className="text-lg sm:text-xl font-bold text-gray-900">
-                    {boards.length}
+                    -
                   </p>
                 </div>
                 <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -185,6 +209,11 @@ const Dashboard = () => {
                 Your boards
               </h2>
               <p className="text-gray-600">Manage your Projects and Tasks</p>
+              {isFreeUser && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Free Plan: {boards.length} / 3 boards used
+                </p>
+              )}
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:mb-6 space-y-2 sm:space-y-0  sm:space-x-4">
               <div className="flex rounded-xl items-center space-x-1 bg-white border p-1">
@@ -422,9 +451,33 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="flex pt-4 space-y-2 sm:space-y-0 space-x-2 flex-col sm:flex-row justify-between">
-              <Button variant={"outline"}>Clear Filters</Button>
-              <Button>Apply Filters</Button>
+              <Button onClick={clearFilters} variant={"outline"}>
+                Clear Filters
+              </Button>
+              <Button onClick={() => setIsFilterOpen(false)}>
+                Apply Filters
+              </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <DialogContent className="w-[95vw] max-w-106.25 mx-auto">
+          <DialogHeader>
+            <DialogTitle>Upgrade to create more boards.</DialogTitle>
+            <p className="text-sm text-gray-600">
+              Free users can only create 3 boards, but you can upgrade to pro or
+              Enterprise to create unlimited boards.
+            </p>
+          </DialogHeader>
+          <div className="flex justify-end space-x-4 pt-4">
+            <Button
+              variant={"outline"}
+              onClick={() => setShowUpgradeDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={() => router.push("/pricing")}>View Plans</Button>
           </div>
         </DialogContent>
       </Dialog>
