@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { createContext, useContext, useEffect, useState } from "react";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { useSession } from "@clerk/nextjs";
@@ -37,10 +37,10 @@ export default function SupabaseProvider({
     </Context.Provider>
   );
 }
-export const useSupabase = () => { 
-    const context = useContext(Context)
-    if(context === undefined){
-        throw new Error("useSupabase needs to be inside the provider");
-    }
-    return context;
- }
+export const useSupabase = () => {
+  const context = useContext(Context);
+  if (context === undefined) {
+    throw new Error("useSupabase needs to be inside the provider");
+  }
+  return context;
+};

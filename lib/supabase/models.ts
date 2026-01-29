@@ -8,6 +8,13 @@ export interface BoardType{
     updated_at: string
 }
 
+export interface InviteType{
+    id: string, 
+    board_id: string,
+    invite_code: string,
+    owner_id: string, 
+    member_id?: string | null,
+}
 
 export type ColumnWithTasks = ColumnType & {
     tasks: TasksType[]

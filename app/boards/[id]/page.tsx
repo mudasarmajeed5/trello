@@ -36,6 +36,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import TaskOverLay from "../components/task-overlay";
+import InviteModal from "../components/invite-modal";
 export type TaskData = {
   title: string;
   description?: string;
@@ -182,7 +183,7 @@ const BoardPage = () => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newColor, setNewColor] = useState("");
-
+  const [newDescription, setNewDescription] = useState("");
   const [isCreatingColumn, setIsCreatingColumn] = useState(false);
   const [isEditingColumn, setIsEditingColumn] = useState(false);
 
@@ -202,15 +203,18 @@ const BoardPage = () => {
   const filteredColumns = columns.map((column) => ({
     ...column,
     tasks: column.tasks.filter((task) => {
-      //  filter by priority. 
-      if(filters.priority.length > 0 && !filters.priority.includes(task.priority)){
+      //  filter by priority.
+      if (
+        filters.priority.length > 0 &&
+        !filters.priority.includes(task.priority)
+      ) {
         return false;
       }
-      // filter by duedate. 
-      if(filters.dueDate && task.due_date){
+      // filter by duedate.
+      if (filters.dueDate && task.due_date) {
         const taskDate = new Date(task.due_date).toDateString();
-        const filterDate = new Date(filters.dueDate).toDateString(); 
-        if(taskDate !== filterDate){
+        const filterDate = new Date(filters.dueDate).toDateString();
+        if (taskDate !== filterDate) {
           return false;
         }
       }
@@ -248,6 +252,7 @@ const BoardPage = () => {
       await updateBoard(board.id, {
         title: newTitle.trim(),
         color: newColor || board.color,
+        description: newDescription,
       });
       setIsEditingTitle(false);
     } catch (error) {}
@@ -402,6 +407,7 @@ const BoardPage = () => {
             setIsEditingTitle(true);
             setNewColor(board?.color ?? "");
             setNewTitle(board?.title ?? "");
+            setNewDescription(board?.description ?? "");
           }}
         />
         <Dialog open={isEditingTitle} onOpenChange={setIsEditingTitle}>
@@ -418,6 +424,17 @@ const BoardPage = () => {
                   required
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="boardDescription">Board Description</Label>
+                <Textarea
+                  id="boardDescription"
+                  placeholder="Enter Board Description..."
+                  cols={5}
+                  required
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -537,80 +554,81 @@ const BoardPage = () => {
                 {columns.reduce((sum, col) => sum + col.tasks.length, 0)}
               </div>
             </div>
-
-            {/* add task dialog */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
-                  <PlusIcon />
-                  Add Task
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-106.25 mx-auto">
-                <DialogHeader>
-                  <DialogTitle>Create New Task</DialogTitle>
-                  <p className="text-sm text-gray-600">
-                    Add a Task to the Board
-                  </p>
-                </DialogHeader>
-                <form className="space-y-4" onSubmit={handleCreateTask}>
-                  <div className="space-y-2">
-                    <Label>Title *</Label>
-                    <Input
-                      required
-                      id="title"
-                      name="title"
-                      placeholder="Enter Task Title"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea
-                      rows={3}
-                      required
-                      id="description"
-                      name="description"
-                      placeholder="Enter Task Description"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Assignee</Label>
-                    <Input
-                      required
-                      id="assignee"
-                      name="assignee"
-                      placeholder="Who should do this?"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Priority</Label>
-                    <Select name="priority" defaultValue="medium">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {["low", "medium", "high"].map((priority, key) => (
-                          <SelectItem
-                            key={key}
-                            value={priority}
-                            className="capitalize"
-                          >
-                            {priority}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Due Date</Label>
-                    <Input type="date" id="dueDate" name="dueDate" />
-                  </div>
-                  <div className="space-y-2 flex justify-end space-x-2 pt-4">
-                    <Button type="submit">Create Task</Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <div className="flex gap-2">
+              <InviteModal />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full sm:w-auto">
+                    <PlusIcon />
+                    Add Task
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[95vw] max-w-106.25 mx-auto">
+                  <DialogHeader>
+                    <DialogTitle>Create New Task</DialogTitle>
+                    <p className="text-sm text-gray-600">
+                      Add a Task to the Board
+                    </p>
+                  </DialogHeader>
+                  <form className="space-y-4" onSubmit={handleCreateTask}>
+                    <div className="space-y-2">
+                      <Label>Title *</Label>
+                      <Input
+                        required
+                        id="title"
+                        name="title"
+                        placeholder="Enter Task Title"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <Textarea
+                        rows={3}
+                        required
+                        id="description"
+                        name="description"
+                        placeholder="Enter Task Description"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Assignee</Label>
+                      <Input
+                        required
+                        id="assignee"
+                        name="assignee"
+                        placeholder="Who should do this?"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Priority</Label>
+                      <Select name="priority" defaultValue="medium">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["low", "medium", "high"].map((priority, key) => (
+                            <SelectItem
+                              key={key}
+                              value={priority}
+                              className="capitalize"
+                            >
+                              {priority}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Due Date</Label>
+                      <Input type="date" id="dueDate" name="dueDate" />
+                    </div>
+                    <div className="space-y-2 flex justify-end space-x-2 pt-4">
+                      <Button type="submit">Create Task</Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
           {/* Board Columns */}

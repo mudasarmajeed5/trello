@@ -131,6 +131,7 @@ export function useBoard(boardId: string) {
         boardId,
         updates,
       );
+      console.log(updatedBoard)
       setBoard(updatedBoard);
       return updateBoard;
     } catch (error) {
