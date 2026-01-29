@@ -20,18 +20,22 @@ export function useBoards() {
     (BoardType & { tasks: TasksType[] })[]
   >([]);
   const [tasksSum, setTasksSum] = useState<number>(0);
+
   useEffect(() => {
     if (user) {
       loadBoards();
       getTotalTasks();
     }
-    let sum = 0;
+  }, [user, supabase]);
 
+
+  useEffect(() => {
+    let sum = 0;
     totalTasks.forEach((board) => {
       sum += board.tasks.length;
     });
     setTasksSum(sum);
-  }, [user, supabase, totalTasks]);
+  }, [totalTasks]);
 
   async function loadBoards() {
     if (!user) return;
@@ -59,7 +63,6 @@ export function useBoards() {
         user.id,
       );
       setTotalTasks(totalTasksOfAllBoards);
-
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "Failed to create board",
@@ -131,7 +134,7 @@ export function useBoard(boardId: string) {
         boardId,
         updates,
       );
-      console.log(updatedBoard)
+      console.log(updatedBoard);
       setBoard(updatedBoard);
       return updateBoard;
     } catch (error) {
