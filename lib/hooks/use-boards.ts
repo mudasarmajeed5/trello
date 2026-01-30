@@ -4,7 +4,7 @@ import {
   boardService,
   columnService,
   taskService,
-} from "../services";
+} from "../board-services";
 import { useEffect, useState } from "react";
 import { BoardType, ColumnWithTasks, TasksType } from "../supabase/models";
 import { useSupabase } from "../supabase/SupabaseProvider";
