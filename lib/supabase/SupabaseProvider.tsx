@@ -25,7 +25,7 @@ export default function SupabaseProvider({
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
       {
-        accessToken: async () => session?.getToken() ?? null,
+        accessToken: async () => await session?.getToken() ?? null,
       },
     );
     setSupabase(client);
