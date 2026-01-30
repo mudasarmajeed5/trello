@@ -25,11 +25,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MoreHorizontal, PlusIcon } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { PlusIcon } from "lucide-react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ColumnWithTasks, TasksType } from "@/lib/supabase/models";
-import { Badge } from "@/components/ui/badge";
 import { SortableTask } from "../components/task";
 import {
   SortableContext,
@@ -37,6 +36,8 @@ import {
 } from "@dnd-kit/sortable";
 import TaskOverLay from "../components/task-overlay";
 import InviteModal from "../components/invite-modal";
+import { DroppableColumn } from "../components/droppable-column";
+import AcceptInviteModal from "../components/accept-invite-modal";
 export type TaskData = {
   title: string;
   description?: string;
@@ -44,132 +45,26 @@ export type TaskData = {
   dueDate?: string;
   priority: "low" | "medium" | "high";
 };
-function DroppableColumn({
-  column,
-  children,
-  onCreateTask,
-  onEditColumn,
-}: {
-  column: ColumnWithTasks;
-  children: React.ReactNode;
-  onCreateTask: (taskData: any) => Promise<void>;
-  onEditColumn: (column: ColumnWithTasks) => void;
-}) {
-  const { setNodeRef, isOver } = useDroppable({ id: column.id });
-
-  return (
-    <div
-      ref={setNodeRef}
-      className={`w-full lg:shrink-0 lg:w-80 ${isOver ? "bg-blue-50 rounded-lg" : ""}`}
-    >
-      <div
-        className={`bg-white rounded-lg shadow-sm border ${isOver ? "ring-2 ring-blue-300" : ""}`}
-      >
-        {/* Column Header */}
-        <div className="p-3 sm:p-4 border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 min-w-0">
-              <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                {column.title}
-              </h3>
-              <Badge variant={"secondary"} className="text-xs shrink-0">
-                {column.tasks.length}
-              </Badge>
-            </div>
-            <Button
-              onClick={() => onEditColumn(column)}
-              variant={"ghost"}
-              size={"sm"}
-              className="shrink-0"
-            >
-              <MoreHorizontal />
-            </Button>
-          </div>
-        </div>
-        {/* Column Content */}
-        <div className="p-2">
-          {children}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant={"ghost"}
-                className="w-full mt-3 text-gray-500 hover:text-gray-700"
-              >
-                <PlusIcon />
-                Add Task
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-106.25 mx-auto">
-              <DialogHeader>
-                <DialogTitle>Create New Task</DialogTitle>
-                <p className="text-sm text-gray-600">Add a Task to the Board</p>
-              </DialogHeader>
-              <form className="space-y-4" onSubmit={onCreateTask}>
-                <div className="space-y-2">
-                  <Label>Title *</Label>
-                  <Input
-                    required
-                    id="title"
-                    name="title"
-                    placeholder="Enter Task Title"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea
-                    rows={3}
-                    required
-                    id="description"
-                    name="description"
-                    placeholder="Enter Task Description"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Assignee</Label>
-                  <Input
-                    required
-                    id="assignee"
-                    name="assignee"
-                    placeholder="Who should do this?"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Priority</Label>
-                  <Select name="priority" defaultValue="medium">
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["low", "medium", "high"].map((priority, key) => (
-                        <SelectItem
-                          key={key}
-                          value={priority}
-                          className="capitalize"
-                        >
-                          {priority}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Due Date</Label>
-                  <Input type="date" id="dueDate" name="dueDate" />
-                </div>
-                <div className="space-y-2 flex justify-end space-x-2 pt-4">
-                  <Button type="submit">Create Task</Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const BoardPage = () => {
+  const searchParams = useSearchParams();
+  const inviteId = searchParams.get("invite");
+  const [showAcceptInvite, setShowAcceptInvite] = useState(false);
   const { id } = useParams<{ id: string }>();
+  const colors = [
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-yellow-500",
+    "bg-red-500",
+    "bg-purple-500",
+    "bg-pink-500",
+    "bg-indigo-500",
+    "bg-orange-500",
+    "bg-gray-500",
+    "bg-teal-500",
+    "bg-cyan-500",
+    "bg-emerald-500",
+  ];
   const {
     board,
     updateBoard,
@@ -186,7 +81,6 @@ const BoardPage = () => {
   const [newDescription, setNewDescription] = useState("");
   const [isCreatingColumn, setIsCreatingColumn] = useState(false);
   const [isEditingColumn, setIsEditingColumn] = useState(false);
-
   const [editingColumnTitle, setEditingColumnTitle] = useState("");
   const [editingColumn, setEditingColumn] = useState<ColumnWithTasks | null>(
     null,
@@ -392,8 +286,18 @@ const BoardPage = () => {
     setEditingColumnTitle(column.title);
   };
 
+  useEffect(() => {
+    setShowAcceptInvite(Boolean(inviteId));
+  }, [inviteId]);
   return (
     <>
+      {inviteId && (
+        <AcceptInviteModal
+          inviteId={inviteId}
+          isInviting={showAcceptInvite}
+          onOpenChange={setShowAcceptInvite}
+        />
+      )}
       <div className="min-h-screen bg-gray-50">
         <Navbar
           boardTitle={board?.title}
@@ -440,20 +344,7 @@ const BoardPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="boardColor">Board Title</Label>
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                  {[
-                    "bg-blue-500",
-                    "bg-green-500",
-                    "bg-yellow-500",
-                    "bg-red-500",
-                    "bg-purple-500",
-                    "bg-pink-500",
-                    "bg-indigo-500",
-                    "bg-orange-500",
-                    "bg-gray-500",
-                    "bg-teal-500",
-                    "bg-cyan-500",
-                    "bg-emerald-500",
-                  ].map((color, idx) => {
+                  {colors.map((color, idx) => {
                     return (
                       <button
                         key={idx}

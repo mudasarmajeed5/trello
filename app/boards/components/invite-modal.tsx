@@ -6,7 +6,6 @@ import {
   DialogDescription,
   DialogContent,
   DialogHeader,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useBoardId } from "@/lib/hooks/use-board-id";
 import { useInvite } from "@/lib/hooks/use-invite";
@@ -31,7 +30,7 @@ const InviteModal = () => {
   const handleCopyURL = () => {
     if (!inviteCode) return;
     try {
-      const url = `http://localhost:3000/boards/18?invite=${inviteCode}`;
+      const url = `http://localhost:3000/boards/${currentBoardId}?invite=${inviteCode}`;
       navigator.clipboard.writeText(url);
       toast("Link Copied to clipboard", { position: "bottom-right" });
     } catch (error) {
@@ -58,7 +57,7 @@ const InviteModal = () => {
           <form onSubmit={handleGenerateInvite} className="space-y-2">
             {inviteCode && (
               <div className="flex items-center justify-between pb-2 flex-col sm:flex-row space-x-2">
-                <span className="text-xs text-blue-900 underline underline-offset-2">{`http://localhost:3000/boards/18?invite=${inviteCode}`}</span>
+                <span className="text-xs text-blue-900 underline underline-offset-2">{`http://localhost:3000/boards/${currentBoardId}?invite=${inviteCode}`}</span>
                 <Button variant={"secondary"} onClick={handleCopyURL}>
                   <CopyIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Button>

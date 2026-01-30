@@ -28,4 +28,32 @@ export const inviteService = {
     if (error) throw error;
     return data || [];
   },
+  async acceptInvite(
+    supabase: SupabaseClient,
+    inviteCode: string,
+    userId: string,
+  ): Promise<InviteType> {
+    const { data: invite, error } = await supabase
+      .from("invites")
+      .select("*")
+      .eq("invite_code", inviteCode)
+      .maybeSingle();
+    if (error) throw error;
+    if (!invite) {
+      throw new Error("Invalid Invite or Invite Expired.");
+    }
+    if (invite.owner_id == userId) {
+      throw new Error("You can not join your own board");
+    }
+    const { data, error: updateError } = await supabase
+      .from("invites")
+      .update({
+        member_id: userId,
+      })
+      .eq("invite_code", inviteCode)
+      .select()
+      .maybeSingle();
+    if (updateError) throw updateError;
+    return data;
+  },
 };

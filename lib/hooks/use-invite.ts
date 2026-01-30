@@ -1,3 +1,4 @@
+"use client"
 import { useUser } from "@clerk/nextjs";
 import { inviteService } from "../invite-service";
 import { useEffect, useState } from "react";
@@ -45,10 +46,27 @@ export function useInvite() {
       setLoading(false);
     }
   }
+  async function acceptUserInvite(inviteId: string) {
+    if (!user || !inviteId) {
+      return;
+    }
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await inviteService.acceptInvite(supabase!, inviteId, user.id);
+      console.log(data);
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message ? error.message : "Failed to Get Joined boards");
+    } finally {
+      setLoading(false);
+    }
+  }
   return {
     loading,
     error,
     generateInviteId,
     joinedBoards,
+    acceptUserInvite
   };
 }
