@@ -18,6 +18,7 @@ const InviteModal = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const { generateInviteId, error } = useInvite();
   const [inviteCode, setInviteCode] = useState<string | null>(null);
+  
   const handleGenerateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     try {

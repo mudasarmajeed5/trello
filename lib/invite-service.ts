@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { InviteType } from "./supabase/models";
+import { BoardType, InviteType } from "./supabase/models";
 export const inviteService = {
   async generateInvite(
     supabase: SupabaseClient,
@@ -16,5 +16,16 @@ export const inviteService = {
       .single();
     if (error) throw error;
     return data;
+  },
+  async getJoinedBoards(
+    supabase: SupabaseClient,
+    userId: string,
+  ): Promise<BoardType[]> {
+    const { data, error } = await supabase
+      .from("boards")
+      .select("*, invites!inner(*)")
+      .eq("invites.member_id", userId);
+    if (error) throw error;
+    return data || [];
   },
 };

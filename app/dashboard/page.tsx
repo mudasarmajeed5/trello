@@ -25,6 +25,7 @@ import {
   FilterIcon,
   Grid3X3,
   ListIcon,
+  Loader2Icon,
   PlusIcon,
   RocketIcon,
   SearchIcon,
@@ -34,10 +35,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import JoinedBoards from "../boards/components/joined-boards";
+import { useInvite } from "@/lib/hooks/use-invite";
 const Dashboard = () => {
   const { user } = useUser();
   const router = useRouter();
   const { createBoard, boards, error, tasksSum } = useBoards();
+  const { joinedBoards, loading } = useInvite();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { isFreeUser } = usePlan();
@@ -94,6 +97,16 @@ const Dashboard = () => {
       title: "New Board",
     });
   };
+  if (loading) {
+    return (
+      <div className="flex space-x-2 items-center min-h-screen justify-center">
+        <span className="text-xl">Loading boards</span>
+        <span>
+          <Loader2Icon className="w-6 h-6 animate-spin" />
+        </span>{" "}
+      </div>
+    );
+  }
   if (error) {
     return <div>Error loading boards: {error}</div>;
   }
@@ -288,20 +301,20 @@ const Dashboard = () => {
                 );
               })}
 
-              <Card className="border border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer group">
-                <Button
-                  className="w-full h-full border-none hover:shadow-none"
-                  variant={"outline"}
-                  onClick={handleCreateBoard}
-                >
+              <Button
+                className="w-full h-full border-2 border-dashed hover:shadow-none"
+                variant={"outline"}
+                onClick={handleCreateBoard}
+              >
+                <Card className="border-none shadow-none w-full h-full border-gray-300 hover:border-blue-400 transition-colors cursor-pointer group">
                   <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-50">
                     <PlusIcon className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-blue-600 mb-2" />
                     <p className="text-sm sm:text-base text-gray-600 group-hover:text-blue-600 font-medium">
                       Create new board
                     </p>
                   </CardContent>
-                </Button>
-              </Card>
+                </Card>
+              </Button>
             </div>
           ) : (
             <div>
@@ -344,8 +357,8 @@ const Dashboard = () => {
             </div>
           )}
           <div className="mt-10">
-            <h4 className="text-2xl font-bold">Your Joined boards</h4>
-            <JoinedBoards />
+            <h4 className="text-2xl mb-5 font-bold">Your Joined boards</h4>
+            <JoinedBoards joinedBoards={joinedBoards} />
           </div>
         </div>
       </main>

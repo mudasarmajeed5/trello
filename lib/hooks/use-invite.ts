@@ -1,14 +1,18 @@
 import { useUser } from "@clerk/nextjs";
 import { inviteService } from "../invite-service";
-import { useState } from "react";
-import { InviteType } from "../supabase/models";
+import { useEffect, useState } from "react";
+import { BoardType, InviteType } from "../supabase/models";
 import { useSupabase } from "../supabase/SupabaseProvider";
 export function useInvite() {
   const { user } = useUser();
   const { supabase } = useSupabase();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [invite, setInvite] = useState<InviteType | null>(null);
+  const [joinedBoards, setJoinedBoards] = useState<BoardType[]>([]);
+  useEffect(() => {
+    if (!user) return;
+    getJoinedBoards();
+  }, [user]);
   async function generateInviteId(boardId: string) {
     if (!user) return;
     try {
@@ -19,11 +23,24 @@ export function useInvite() {
         boardId,
         user?.id,
       );
-      setInvite(data);
       return data;
     } catch (error) {
-        const err = error as Error;
-        setError(err.message ? err.message : "Failed to generate invite-id")
+      const err = error as Error;
+      setError(err.message ? err.message : "Failed to generate invite-id");
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function getJoinedBoards() {
+    if (!user) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await inviteService.getJoinedBoards(supabase!, user?.id);
+      setJoinedBoards(data);
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message ? error.message : "Failed to Get Joined boards");
     } finally {
       setLoading(false);
     }
@@ -31,7 +48,7 @@ export function useInvite() {
   return {
     loading,
     error,
-    invite,
     generateInviteId,
+    joinedBoards,
   };
 }
