@@ -21,10 +21,12 @@ const InviteModal = () => {
   const handleGenerateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setInviteCode(null);
       const data = await generateInviteId(currentBoardId);
       setInviteCode(data?.invite_code ?? null);
     } catch (error) {
       console.log(error);
+    } finally {
     }
   };
   const handleCopyURL = () => {

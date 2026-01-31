@@ -25,8 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PlusIcon } from "lucide-react";
-import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 import { ColumnWithTasks, TasksType } from "@/lib/supabase/models";
 import { SortableTask } from "../components/task";
 import {
@@ -36,7 +36,6 @@ import {
 import TaskOverLay from "../components/task-overlay";
 import InviteModal from "../components/invite-modal";
 import { DroppableColumn } from "../components/droppable-column";
-import AcceptInviteModal from "../components/accept-invite-modal";
 export type TaskData = {
   title: string;
   description?: string;
@@ -46,9 +45,6 @@ export type TaskData = {
 };
 
 const BoardPage = () => {
-  const searchParams = useSearchParams();
-  const inviteId = searchParams.get("invite");
-  const [showAcceptInvite, setShowAcceptInvite] = useState(false);
   const { id } = useParams<{ id: string }>();
   const colors = [
     "bg-blue-500",
@@ -285,18 +281,9 @@ const BoardPage = () => {
     setEditingColumnTitle(column.title);
   };
 
-  useEffect(() => {
-    setShowAcceptInvite(Boolean(inviteId));
-  }, [inviteId]);
+
   return (
     <>
-      {inviteId && (
-        <AcceptInviteModal
-          inviteId={inviteId}
-          isInviting={showAcceptInvite}
-          onOpenChange={setShowAcceptInvite}
-        />
-      )}
       <div className="min-h-screen bg-gray-50">
         <Navbar
           boardTitle={board?.title}
