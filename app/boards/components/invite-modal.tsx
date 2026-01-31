@@ -17,7 +17,7 @@ const InviteModal = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const { generateInviteId, error } = useInvite();
   const [inviteCode, setInviteCode] = useState<string | null>(null);
-
+  const baseUrl = window.location.origin;
   const handleGenerateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -32,7 +32,8 @@ const InviteModal = () => {
   const handleCopyURL = () => {
     if (!inviteCode) return;
     try {
-      const url = `http://localhost:3000/invite?code=${inviteCode}&boardId=${currentBoardId}`;
+      const baseUrl = window.location.origin;
+      const url = `${baseUrl}/invite?code=${inviteCode}&boardId=${currentBoardId}`;
       navigator.clipboard.writeText(url);
       toast("Link Copied to clipboard", { position: "bottom-right" });
     } catch (error) {
@@ -59,7 +60,7 @@ const InviteModal = () => {
           <form onSubmit={handleGenerateInvite} className="space-y-2">
             {inviteCode && (
               <div className="flex items-center justify-between pb-2 flex-col sm:flex-row space-x-2">
-                <span className="text-xs text-blue-900 underline underline-offset-2">{`http://localhost:3000/invite?code=${inviteCode}&boardId=${currentBoardId}`}</span>
+                <span className="text-xs text-blue-900 underline underline-offset-2">{`${baseUrl}/invite?code=${inviteCode}&boardId=${currentBoardId}`}</span>
                 <Button
                   type="button"
                   variant={"secondary"}
