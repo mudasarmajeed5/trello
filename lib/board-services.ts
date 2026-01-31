@@ -142,18 +142,18 @@ export const taskService = {
 };
 
 export const boardDataService = {
-  async getTotalTasksCount(supabase: SupabaseClient, userId: string){
+  async getTotalTasksCount(supabase: SupabaseClient, userId: string) {
     const boards = await boardService.getBoards(supabase, userId);
-   
+
     const boardWithColumns = await Promise.all(
-      boards.map(async(board)=>{
-        const tasks = await taskService.getTasksByBoard(supabase, board.id); 
+      boards.map(async (board) => {
+        const tasks = await taskService.getTasksByBoard(supabase, board.id);
         return {
-          ...board, 
+          ...board,
           tasks,
-        }
-      })
-    )
+        };
+      }),
+    );
     return boardWithColumns;
   },
   async getBoardWithColumns(supabase: SupabaseClient, boardId: string) {

@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { useSession } from "@clerk/nextjs";
+import { Loader2Icon } from "lucide-react";
 
 type SupabaseContext = {
   supabase: SupabaseClient | null;
@@ -23,7 +24,7 @@ export default function SupabaseProvider({
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (!isLoaded) return; // Wait for Clerk to load
+    if (!isLoaded) return;
     
     if (!session) {
       setIsLoading(false);
@@ -43,7 +44,12 @@ export default function SupabaseProvider({
 
   return (
     <Context.Provider value={{ supabase, isLoading }}>
-      {isLoading ? <div>Loading...</div> : children}
+      {isLoading ? <div className="flex space-x-2 items-center min-h-screen justify-center">
+        <span className="text-xl">Loading</span>
+        <span>
+          <Loader2Icon className="w-6 h-6 animate-spin" />
+        </span>{" "}
+      </div> : children}
     </Context.Provider>
   );
 }

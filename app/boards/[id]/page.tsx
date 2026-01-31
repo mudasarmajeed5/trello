@@ -9,7 +9,6 @@ import {
   DragStartEvent,
   PointerSensor,
   rectIntersection,
-  useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -449,7 +448,7 @@ const BoardPage = () => {
               <InviteModal />
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto">
+                  <Button className="flex-1 sm:w-auto">
                     <PlusIcon />
                     Add Task
                   </Button>
