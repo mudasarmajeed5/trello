@@ -45,7 +45,7 @@ export const boardService = {
   ): Promise<BoardType> {
     const { data, error } = await supabase
       .from("boards")
-      .update({ ...updates, updated_at: new Date().toISOString })
+      .update({ ...updates, updated_at: new Date().toISOString() })
       .eq("id", boardId)
       .select()
       .single();

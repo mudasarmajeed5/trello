@@ -45,6 +45,10 @@ export const inviteService = {
     if (invite.owner_id == userId) {
       throw new Error("You can not join your own board");
     }
+    if (invite.member_id == userId) {
+      // Already joined - return the invite data
+      return invite;
+    }
     const { data, error: updateError } = await supabase
       .from("invites")
       .update({
