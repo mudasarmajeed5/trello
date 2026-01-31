@@ -57,7 +57,8 @@ export function SortableTask({ task }: { task: TasksType }) {
                 {task.due_date && (
                   <div className="flex items-center text-xs text-gray-500 space-x-1 sm:space-x-2 min-w-0">
                     <CalendarIcon className="w-3 h-3" />
-                    <span className="truncate">{task.due_date}</span>
+<span className="truncate">{new Date(task.due_date).toLocaleDateString()}</span>
+
                   </div>
                 )}
               </div>
