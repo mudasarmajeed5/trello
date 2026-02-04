@@ -1,8 +1,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { TasksType } from "@/lib/supabase/models";
 import { useSortable } from "@dnd-kit/sortable";
-import { CalendarIcon, UserIcon } from "lucide-react";
+import { CalendarIcon, Edit2Icon, UserIcon } from "lucide-react";
 import { CSS } from "@dnd-kit/utilities";
+import { Button } from "@/components/ui/button";
+import { FormEvent, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 export function SortableTask({ task }: { task: TasksType }) {
   const {
     attributes,
@@ -12,11 +22,13 @@ export function SortableTask({ task }: { task: TasksType }) {
     transition,
     isDragging,
   } = useSortable({ id: task.id });
-
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [isEditingTask, setIsEditingTask] = useState(false);
   const styles = {
-    transform: CSS.Transform.toString(transform), 
-    transition, 
-    opacity: isDragging ? 0.5: 1
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
   };
   function getPriorityColor(priority: "low" | "medium" | "high"): string {
     switch (priority) {
@@ -57,14 +69,52 @@ export function SortableTask({ task }: { task: TasksType }) {
                 {task.due_date && (
                   <div className="flex items-center text-xs text-gray-500 space-x-1 sm:space-x-2 min-w-0">
                     <CalendarIcon className="w-3 h-3" />
-<span className="truncate">{new Date(task.due_date).toLocaleDateString()}</span>
-
+                    <span className="truncate">
+                      {new Date(task.due_date).toLocaleDateString()}
+                    </span>
                   </div>
                 )}
               </div>
               <div
                 className={`w-2 h-2 rounded-full shrink-0 ${getPriorityColor(task.priority)}`}
               />
+              <Button
+                onClick={()=>setIsEditingTask(true)}
+                size={"icon-sm"}
+                variant={"outline"}
+              >
+                <Edit2Icon className="w-4 h-4" />
+              </Button>
+              <Dialog open={isEditingTask} onOpenChange={setIsEditingTask}>
+                <DialogHeader>
+                  <DialogTitle>Edit Task</DialogTitle>
+                </DialogHeader>
+                <DialogContent>
+                  <form onClick={handleEditTask} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Enter title</Label>
+                      <Input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Enter title</Label>
+                      <Input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Enter description</Label>
+                      <Input
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                      />
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </CardContent>
