@@ -176,8 +176,15 @@ const BoardPage = () => {
       }
     }
   };
-  const handleUpdateTask = (updatedtask: TasksType) => {
-
+  const handleUpdateTask = (updatedtask: Omit<TasksType, "column_id" | "created_at" | "sort_order">) => {
+    setColumns((prev) =>
+      prev.map((col) => ({
+        ...col,
+        tasks: col.tasks.map((task) =>
+          task.id === updatedtask.id ? { ...task, ...updatedtask } : task,
+        ),
+      })),
+    );
   };
 
   const handleDragStart = (e: DragStartEvent) => {
@@ -543,7 +550,7 @@ const BoardPage = () => {
                   >
                     <div className="space-y-3">
                       {column.tasks.map((task, key) => (
-                        <SortableTask task={task} key={key} />
+                        <SortableTask onUpdateTask={handleUpdateTask} task={task} key={key} />
                       ))}
                     </div>
                   </SortableContext>

@@ -15,7 +15,7 @@ export function useTasks() {
       setTask(updatedTask);
     } catch (e) {
       const error = e as Error;
-      setError(error.message);
+      setError(error.message ? error.message: "Network Error");
     } finally {
       setLoading(false);
     }

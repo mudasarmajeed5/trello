@@ -24,10 +24,12 @@ const EditTask = ({
   task,
   openDialog,
   onOpenChange,
+  onUpdateTask
 }: {
   task: TasksType;
   openDialog: boolean;
   onOpenChange: (open: boolean) => void;
+  onUpdateTask: (updatedTask: Omit<TasksType, "column_id" | "created_at" | "sort_order">) => void;
 }) => {
   const { updateTask, loading, error } = useTasks();
   const [taskData, setTaskData] = useState<TasksType>({
@@ -53,6 +55,10 @@ const EditTask = ({
     };
 
     await updateTask(updatedTask);
+    onUpdateTask(updatedTask)
+    if(!error){
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -151,6 +157,9 @@ const EditTask = ({
               }}
             />
           </div>
+          {
+            error && <p className="text-red-600">{error}</p>
+          }
           <div className="space-y-2 flex justify-end space-x-2 pt-4">
             <Button
               type="button"
@@ -159,7 +168,7 @@ const EditTask = ({
             >
               Cancel
             </Button>
-            <Button type="submit">Save task</Button>
+            <Button disabled={loading} className="disabled:opacity-80" type="submit">{loading ? "Updating": "Update"}</Button>
           </div>
         </form>
       </DialogContent>

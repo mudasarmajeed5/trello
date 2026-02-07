@@ -6,7 +6,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import EditTask from "./edit-task";
-export function SortableTask({ task }: { task: TasksType }) {
+export function SortableTask({ task, onUpdateTask }: { task: TasksType, onUpdateTask: (updatedTask: Omit<TasksType, "column_id" | "created_at" | "sort_order">) => void }) {
   const {
     attributes,
     listeners,
@@ -87,6 +87,7 @@ export function SortableTask({ task }: { task: TasksType }) {
         openDialog={isEditingTask}
         task={task}
         onOpenChange={setIsEditingTask}
+        onUpdateTask={onUpdateTask}
       />
     </div>
   );
