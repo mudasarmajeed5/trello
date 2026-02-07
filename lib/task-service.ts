@@ -65,4 +65,17 @@ export const taskService = {
     if (error) throw error;
     return data;
   },
+  async deleteTask(
+    supabase: SupabaseClient,
+    taskId: string,
+  ): Promise<TasksType> {
+    const { data: deletedTask, error } = await supabase
+      .from("tasks")
+      .delete()
+      .eq("id", taskId)
+      .select()
+      .single();
+    if (error) throw error;
+    return deletedTask;
+  },
 };

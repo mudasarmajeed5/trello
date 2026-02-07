@@ -20,10 +20,23 @@ export function useTasks() {
       setLoading(false);
     }
   }
+   async function deleteTask(taskId: string) {
+    try {
+      setLoading(true);
+      setError(null);
+      await taskService.deleteTask(supabase!, taskId);
+    } catch (e) {
+      const error = e as Error;
+      setError(error.message ? error.message: "Network Error");
+    } finally {
+      setLoading(false);
+    }
+  }
   return {
     loading,
     error,
     task,
     updateTask,
+    deleteTask
   };
 }

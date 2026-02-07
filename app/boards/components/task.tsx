@@ -1,12 +1,25 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { TasksType } from "@/lib/supabase/models";
 import { useSortable } from "@dnd-kit/sortable";
-import { CalendarIcon, Edit2Icon, UserIcon } from "lucide-react";
+import { Dialog as UIDeleteDialog } from "@mudasarmajeed5/dialog";
+import { CalendarIcon, Edit2Icon, TrashIcon, UserIcon } from "lucide-react";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import EditTask from "./edit-task";
-export function SortableTask({ task, onUpdateTask }: { task: TasksType, onUpdateTask: (updatedTask: Omit<TasksType, "column_id" | "created_at" | "sort_order">) => void }) {
+import { useTasks } from "@/lib/hooks/use-tasks";
+import { toast } from "sonner";
+export function SortableTask({
+  task,
+  onUpdateTask,
+  onDeleteTask,
+}: {
+  task: TasksType;
+  onUpdateTask: (
+    updatedTask: Omit<TasksType, "column_id" | "created_at" | "sort_order">,
+  ) => void;
+  onDeleteTask: (taskId: string) => void;
+}) {
   const {
     attributes,
     listeners,
@@ -17,13 +30,19 @@ export function SortableTask({ task, onUpdateTask }: { task: TasksType, onUpdate
   } = useSortable({ id: task.id });
 
   const [isEditingTask, setIsEditingTask] = useState(false);
-
+  const { deleteTask: removeTask, loading, error } = useTasks();
   const styles = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
-
+  const deleteTask = async () => {
+    await removeTask(task.id);
+    if (!error) {
+      onDeleteTask(task.id);
+      toast.success("Task deleted.", { position: "bottom-right" });
+    }
+  };
   function getPriorityColor(priority: "low" | "medium" | "high"): string {
     switch (priority) {
       case "high":
@@ -72,13 +91,31 @@ export function SortableTask({ task, onUpdateTask }: { task: TasksType, onUpdate
               <div
                 className={`w-2 h-2 rounded-full shrink-0 ${getPriorityColor(task.priority)}`}
               />
-              <Button
-                onClick={() => setIsEditingTask(true)}
-                size={"icon-sm"}
-                variant={"outline"}
-              >
-                <Edit2Icon className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center space-x-1">
+                <UIDeleteDialog
+                  title="Delete Task"
+                  description="This action is not reversible"
+                  onComplete={deleteTask}
+                  onCancel={() => {}}
+                  variant="light"
+                >
+                  <Button
+                    size={"icon-sm"}
+                    className="text-red-600 bg-red-50"
+                    variant={"outline"}
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                  </Button>
+                </UIDeleteDialog>
+                <Button
+                  onClick={() => setIsEditingTask(true)}
+                  size={"icon-sm"}
+                  variant={"outline"}
+                  className="text-green-600 bg-green-50"
+                >
+                  <Edit2Icon className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>

@@ -176,7 +176,9 @@ const BoardPage = () => {
       }
     }
   };
-  const handleUpdateTask = (updatedtask: Omit<TasksType, "column_id" | "created_at" | "sort_order">) => {
+  const handleUpdateTask = (
+    updatedtask: Omit<TasksType, "column_id" | "created_at" | "sort_order">,
+  ) => {
     setColumns((prev) =>
       prev.map((col) => ({
         ...col,
@@ -185,6 +187,16 @@ const BoardPage = () => {
         ),
       })),
     );
+  };
+  const handleDeleteTask = (taskId: string) => {
+    setColumns((prev)=>
+      prev.map((col)=>({
+        ...col, 
+        tasks: col.tasks.filter((task)=>
+        task.id !== taskId
+        )
+      }))
+    )
   };
 
   const handleDragStart = (e: DragStartEvent) => {
@@ -550,7 +562,12 @@ const BoardPage = () => {
                   >
                     <div className="space-y-3">
                       {column.tasks.map((task, key) => (
-                        <SortableTask onUpdateTask={handleUpdateTask} task={task} key={key} />
+                        <SortableTask
+                          onUpdateTask={handleUpdateTask}
+                          task={task}
+                          onDeleteTask={handleDeleteTask}
+                          key={key}
+                        />
                       ))}
                     </div>
                   </SortableContext>
