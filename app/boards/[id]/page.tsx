@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectItem } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useBoard } from "@/lib/hooks/use-boards";
+import { useBoard } from "@/lib/hooks/use-board";
 import { DialogTitle, DialogTrigger } from "@radix-ui/react-dialog";
 import {
   SelectContent,
@@ -176,6 +176,10 @@ const BoardPage = () => {
       }
     }
   };
+  const handleUpdateTask = (updatedtask: TasksType) => {
+
+  };
+
   const handleDragStart = (e: DragStartEvent) => {
     const taskId = e.active.id.toString();
     const task = columns
@@ -280,7 +284,6 @@ const BoardPage = () => {
     setEditingColumn(column);
     setEditingColumnTitle(column.title);
   };
-
 
   return (
     <>

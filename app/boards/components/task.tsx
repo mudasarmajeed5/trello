@@ -4,15 +4,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CalendarIcon, Edit2Icon, UserIcon } from "lucide-react";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
-import { FormEvent, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import EditTask from "./edit-task";
 export function SortableTask({ task }: { task: TasksType }) {
   const {
     attributes,
@@ -22,14 +15,15 @@ export function SortableTask({ task }: { task: TasksType }) {
     transition,
     isDragging,
   } = useSortable({ id: task.id });
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+
   const [isEditingTask, setIsEditingTask] = useState(false);
+
   const styles = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
   function getPriorityColor(priority: "low" | "medium" | "high"): string {
     switch (priority) {
       case "high":
@@ -79,46 +73,21 @@ export function SortableTask({ task }: { task: TasksType }) {
                 className={`w-2 h-2 rounded-full shrink-0 ${getPriorityColor(task.priority)}`}
               />
               <Button
-                onClick={()=>setIsEditingTask(true)}
+                onClick={() => setIsEditingTask(true)}
                 size={"icon-sm"}
                 variant={"outline"}
               >
                 <Edit2Icon className="w-4 h-4" />
               </Button>
-              <Dialog open={isEditingTask} onOpenChange={setIsEditingTask}>
-                <DialogHeader>
-                  <DialogTitle>Edit Task</DialogTitle>
-                </DialogHeader>
-                <DialogContent>
-                  <form onClick={handleEditTask} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Enter title</Label>
-                      <Input
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Enter title</Label>
-                      <Input
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Enter description</Label>
-                      <Input
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                      />
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
             </div>
           </div>
         </CardContent>
       </Card>
+      <EditTask
+        openDialog={isEditingTask}
+        task={task}
+        onOpenChange={setIsEditingTask}
+      />
     </div>
   );
 }

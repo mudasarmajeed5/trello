@@ -1,5 +1,6 @@
 import { BoardType, ColumnType, TasksType } from "./supabase/models";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { taskService } from "./task-service";
 
 export const boardService = {
   async getBoard(
@@ -94,52 +95,7 @@ export const columnService = {
   },
 };
 
-export const taskService = {
-  async getTasksByBoard(
-    supabase: SupabaseClient,
-    boardId: string,
-  ): Promise<TasksType[]> {
-    const { data, error } = await supabase
-      .from("tasks")
-      .select(
-        `
-          *, columns!inner(board_id)
-        `,
-      )
-      .eq("columns.board_id", boardId)
-      .order("sort_order", { ascending: true });
-    if (error) throw error;
-    return data || [];
-  },
-  async createTask(
-    supabase: SupabaseClient,
-    task: Omit<TasksType, "id" | "created_at" | "updated_at">,
-  ): Promise<TasksType> {
-    const { data, error } = await supabase
-      .from("tasks")
-      .insert(task)
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
-  },
-  async moveTask(
-    supabase: SupabaseClient,
-    taskId: string,
-    newColumnId: string,
-    newOrder: number,
-  ) {
-    const { data, error } = await supabase
-      .from("tasks")
-      .update({
-        column_id: newColumnId,
-        sort_order: newOrder,
-      })
-      .eq("id", taskId);
-    if (error) throw error;
-    return data;
-  },
-};
+
 
 export const boardDataService = {
   async getTotalTasksCount(supabase: SupabaseClient, userId: string) {
