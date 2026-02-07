@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PlusIcon } from "lucide-react";
+import { DotIcon, PlusIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { ColumnWithTasks, TasksType } from "@/lib/supabase/models";
@@ -189,14 +189,12 @@ const BoardPage = () => {
     );
   };
   const handleDeleteTask = (taskId: string) => {
-    setColumns((prev)=>
-      prev.map((col)=>({
-        ...col, 
-        tasks: col.tasks.filter((task)=>
-        task.id !== taskId
-        )
-      }))
-    )
+    setColumns((prev) =>
+      prev.map((col) => ({
+        ...col,
+        tasks: col.tasks.filter((task) => task.id !== taskId),
+      })),
+    );
   };
 
   const handleDragStart = (e: DragStartEvent) => {
@@ -351,7 +349,7 @@ const BoardPage = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="boardColor">Board Title</Label>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-1">
                   {colors.map((color, idx) => {
                     return (
                       <button
@@ -388,7 +386,7 @@ const BoardPage = () => {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Priority</Label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1">
                   {["low", "medium", "high"].map((priority, key) => (
                     <Button
                       onClick={() => {
@@ -448,12 +446,26 @@ const BoardPage = () => {
           {/* Board Stats */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 space-y-4 sm:space-y-0">
             <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-800">
                 <span className="font-medium">Total Tasks: </span>
                 {columns.reduce((sum, col) => sum + col.tasks.length, 0)}
               </div>
+              <div className="flex py-2 text-sm text-gray-700 space-x-3 flex-row">
+                <div className="flex items-center gap-1">
+                  <span>High</span>
+                  <span className="p-1 rounded-full bg-red-500 border-r" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span>Medium</span>
+                  <span className="p-1 rounded-full bg-yellow-500" />
+                </div>
+                <div className="flex items-center gap-1">
+                  <span>Low</span>
+                  <span className="p-1 rounded-full bg-green-500" />
+                </div>
+              </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <InviteModal />
               <Dialog>
                 <DialogTrigger asChild>
